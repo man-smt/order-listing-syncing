@@ -2,11 +2,24 @@ import { Request, Response } from 'express'
 import { Order } from '../models/order'
 import { fetchOrdersFromShopify } from '../services/shopifyService'
 
+interface Filter {
+  customerName?: { $regex: RegExp }
+  attributedStaffName?: { $regex: RegExp }
+  orderDate?: {
+    $gte?: Date
+    $lte?: Date
+  }
+  $or?: Array<{
+    customerName?: { $regex: RegExp }
+    attributedStaffName?: { $regex: RegExp }
+  }>
+}
+
 export const getOrders = async (req: Request, res: Response) => {
   try {
     const { queryValue, startDate, endDate } = req.query
 
-    const filter: any = {}
+    const filter: Filter = {}
 
     if (queryValue) {
       const searchTerm = new RegExp(queryValue as string, 'i')
@@ -33,7 +46,7 @@ export const getOrders = async (req: Request, res: Response) => {
       }
     }
 
-    const orders = await Order.find(filter)
+    const orders: Document[] = await Order.find(filter)
     res.json(orders)
   } catch (err) {
     res.status(500).json({ message: (err as Error).message })
