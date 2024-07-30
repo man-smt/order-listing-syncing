@@ -1,60 +1,59 @@
-import { Request, Response } from 'express';
-import { Order } from '../models/order';
-import { fetchOrdersFromShopify } from '../services/shopifyService';
+import { Request, Response } from 'express'
+import { Order } from '../models/order'
+import { fetchOrdersFromShopify } from '../services/shopifyService'
 
 export const getOrders = async (req: Request, res: Response) => {
   try {
-    const { customer, staff, startDate, endDate } = req.query;
+    const { queryValue, startDate, endDate } = req.query
 
-    const filter: any = {};
+    const filter: any = {}
 
-    if (customer) {
-      filter.customer = customer;
-    }
+    if (queryValue) {
+      const searchTerm = new RegExp(queryValue as string, 'i')
 
-    if (staff) {
-      filter.attributedStaff = staff;
+      filter.$or = [
+        { customerName: { $regex: searchTerm } },
+        { attributedStaffName: { $regex: searchTerm } },
+      ]
     }
 
     if (startDate || endDate) {
-      filter.date = {};
-      if (startDate) {
-        filter.date.$gte = new Date(startDate as string);
-      }
-      if (endDate) {
-        filter.date.$lte = new Date(endDate as string);
+      filter.orderDate = {}
+      if (startDate && endDate) {
+        const startDateDay = new Date(startDate as string)
+        startDateDay.setHours(0, 0, 0, 0)
+
+        const endDateDay = new Date(endDate as string)
+        endDateDay.setHours(23, 59, 59, 999)
+
+        filter.orderDate = {
+          $gte: startDateDay,
+          $lte: endDateDay,
+        }
       }
     }
 
-    // Fetch orders with filters
-    const orders = await Order.find(filter);
-    res.json(orders);
+    const orders = await Order.find(filter)
+    res.json(orders)
   } catch (err) {
-    res.status(500).json({ message: (err as Error).message });
+    res.status(500).json({ message: (err as Error).message })
   }
-};
+}
 
 export const syncOrders = async (req: Request, res: Response) => {
   try {
-    const ordersFromShopify = await fetchOrdersFromShopify();
+    const ordersFromShopify = await fetchOrdersFromShopify()
 
-    const promises = ordersFromShopify.map(async (order: any) => {
-      try {
-        await Order.findOneAndUpdate(
-          { orderId: order.orderId },
-          { $set: order },
-          { upsert: true, new: true },
-        );
-      } catch (err) {
-        console.error('Error while updating order:', err);
+    for (const order of ordersFromShopify) {
+      const existingOrder = await Order.findOne({ orderId: order.orderId })
+      if (!existingOrder) {
+        await Order.create(order)
       }
-    });
+    }
 
-    // Wait for all promises to complete
-    await Promise.all(promises);
-
-    res.json({ message: 'Orders synchronized successfully' });
+    res.json({ message: 'Orders synchronized successfully' })
   } catch (err) {
-    res.status(500).json({ message: (err as Error).message });
+    console.log(err)
+    res.status(404).json({ message: (err as Error).message })
   }
-};
+}

@@ -1,15 +1,36 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 import { IndexTable, Filters, useIndexResourceState } from '@shopify/polaris'
+import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
-import { fetchData } from '../../api/orders'
+import { TextField } from '@shopify/polaris'
+import { DatePicker } from '@shopify/polaris'
+import { debounce } from 'lodash'
+import { API_BASE_URL } from '../../api/orders'
 
-const OrderList = () => {
-  const [orders, setOrders] = useState([])
+export interface OrderItem {
+  _id?: string
+  orderId: string
+  orderDate: Date
+  customerName: string
+  attributedStaffName: string
+  total: number
+  commission: number
+}
+
+const OrderList = ({
+  orders,
+  setOrders,
+}: {
+  orders: OrderItem[]
+  setOrders: any
+}) => {
   const [queryValue, setQueryValue] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [staffName, setStaffName] = useState('')
-  const [dateRange, setDateRange] = useState({ start: null, end: null })
+  const [dateRange, setDateRange] = useState<any>({ start: null, end: null })
+
+  console.log(customerName, staffName, dateRange)
 
   const handleQueryChange = useCallback(
     (value: any) => setQueryValue(value),
@@ -32,16 +53,35 @@ const OrderList = () => {
     setDateRange({ start: null, end: null })
   }, [])
 
+  const logFilters = useCallback(
+    debounce(() => {
+      console.log('Filters changed:', {
+        queryValue,
+      })
+
+      const fetchData = async () => {
+        const response = await axios.get(
+          `${API_BASE_URL}/orders?queryValue=${queryValue}`
+        )
+
+        setOrders(response.data)
+      }
+      fetchData()
+    }, 1500),
+
+    [queryValue]
+  )
+
   useEffect(() => {
-    fetchData().then((data) => setOrders(data))
-  }, [])
+    logFilters()
+  }, [logFilters])
 
   const filters = [
     {
       key: 'customerName',
       label: 'Customer name',
       filter: (
-        <Filters.TextField
+        <TextField
           value={customerName}
           onChange={handleCustomerChange}
           placeholder='Customer name'
@@ -52,23 +92,27 @@ const OrderList = () => {
       key: 'staffName',
       label: 'Attributed staff name',
       filter: (
-        <Filters.TextField
+        <TextField
           value={staffName}
           onChange={handleStaffChange}
           placeholder='Staff name'
         />
       ),
     },
-    {
-      key: 'dateRange',
-      label: 'Date range',
-      filter: (
-        <Filters.DateSelector
-          dateRange={dateRange}
-          onChange={handleDateRangeChange}
-        />
-      ),
-    },
+    // {
+    //   key: 'dateRange',
+    //   label: 'Date range',
+    //   filter: (
+    //     <DatePicker
+    //       month={dateRange.start?.getMonth() || 0}
+    //       year={dateRange.start?.getFullYear() || new Date().getFullYear()}
+    //       onChange={handleDateRangeChange}
+    //       onMonthChange={() => {}}
+    //       selected={dateRange}
+    //       allowRange
+    //     />
+    //   ),
+    // },
   ]
 
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
@@ -84,8 +128,8 @@ const OrderList = () => {
         attributedStaffName,
         total,
         commission,
-      },
-      index
+      }: OrderItem,
+      index: number
     ) => (
       <IndexTable.Row
         id={_id}
@@ -94,7 +138,13 @@ const OrderList = () => {
         position={index}
       >
         <IndexTable.Cell>{orderId}</IndexTable.Cell>
-        <IndexTable.Cell>{orderDate}</IndexTable.Cell>
+        <IndexTable.Cell>
+          {new Date(orderDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </IndexTable.Cell>
         <IndexTable.Cell>{customerName}</IndexTable.Cell>
         <IndexTable.Cell>{attributedStaffName}</IndexTable.Cell>
         <IndexTable.Cell>${total}</IndexTable.Cell>
@@ -105,16 +155,26 @@ const OrderList = () => {
 
   return (
     <>
-      {orders?.length ? (
-        <Filters
-          queryValue={queryValue}
-          filters={filters}
-          onQueryChange={handleQueryChange}
-          onClearAll={handleClearAll}
+      <div
+        style={{
+          marginBottom: '10px',
+        }}
+      >
+        <TextField
+          autoComplete='off'
+          value={queryValue}
+          onChange={handleQueryChange}
+          placeholder='Search by customer name or attributed staff name'
         />
-      ) : (
-        ''
-      )}
+      </div>
+      {/* <Filters
+        queryValue={queryValue}
+        placeholder='Search orders'
+        filters={filters}
+        onQueryChange={handleQueryChange}
+        onClearAll={handleClearAll}
+      /> */}
+      <Toaster />
       <IndexTable
         selectable={false}
         resourceName={{ singular: 'order', plural: 'orders' }}
