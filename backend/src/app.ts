@@ -7,8 +7,8 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 const app = express()
-const port = 8080
-const mongoUri = 'mongodb://localhost:27017/ordersCommissionsViewer'
+const port = process.env.PORT || 8080
+const mongoUri = process.env.MONGO_URI
 
 app.use(
   cors({
@@ -20,6 +20,10 @@ app.use(
 
 app.use(express.json())
 app.use('/api', orderRoutes)
+
+if (!mongoUri) {
+  throw new Error('MONGO_URI must be defined')
+}
 
 mongoose
   .connect(mongoUri)
