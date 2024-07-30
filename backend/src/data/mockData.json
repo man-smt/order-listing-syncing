@@ -1,0 +1,18 @@
+[
+  {
+    "orderId": "123",
+    "orderDate": "2023-07-01T12:00:00Z",
+    "customerName": "John Doe",
+    "attributedStaffName": "Jane Smith",
+    "total": 200,
+    "productsCount": 3
+  },
+  {
+    "orderId": "124",
+    "orderDate": "2023-07-02T21:00:00Z",
+    "customerName": "Alice Johnson",
+    "attributedStaffName": "Bob Brown",
+    "total": 150,
+    "productsCount": 2
+  }
+]
