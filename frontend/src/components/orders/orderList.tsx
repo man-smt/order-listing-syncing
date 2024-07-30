@@ -68,14 +68,12 @@ const OrderList = ({
 
       const fetchData = async () => {
         const response = await axios.get(
-          `${API_BASE_URL}/orders?queryValue=${queryValue}`
+          `${API_BASE_URL}/orders?queryValue=${queryValue}&startDate=${selectedDateRange.since}&endDate=${selectedDateRange.until}`
         )
 
         setOrders(response.data)
       }
-      if (queryValue?.length) {
-        fetchData()
-      }
+      fetchData()
     }, 1500),
 
     [queryValue]
@@ -138,7 +136,11 @@ const OrderList = ({
           <TextField
             autoComplete='off'
             value={queryValue}
-            onChange={handleQueryChange}
+            onChange={(value: string) => {
+              if (value === '') setQueryValue(value)
+              const regex = /^[a-zA-Z0-9\s]+$/
+              if (regex.test(value)) handleQueryChange(value)
+            }}
             placeholder='Search by customer name or attributed staff name'
           />
         </div>
