@@ -7,6 +7,9 @@ import { TextField } from '@shopify/polaris'
 import { DatePicker } from '@shopify/polaris'
 import { debounce } from 'lodash'
 import { API_BASE_URL } from '../../api/orders'
+import DateRangePicker, {
+  formatDateToYearMonthDayDateString,
+} from './datePicker'
 
 export interface OrderItem {
   _id?: string
@@ -25,34 +28,37 @@ const OrderList = ({
   orders: OrderItem[]
   setOrders: (orders: OrderItem[]) => void
 }) => {
+  const [selectedDateRange, setSelectedDateRange] = useState<{
+    since?: string
+    until?: string
+  }>({
+    since: formatDateToYearMonthDayDateString(
+      new Date(new Date().setHours(0, 0, 0, 0))
+    ),
+    until: formatDateToYearMonthDayDateString(
+      new Date(new Date().setHours(0, 0, 0, 0))
+    ),
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      let url = `${API_BASE_URL}/orders?startDate=${selectedDateRange.since}&endDate=${selectedDateRange.until}`
+
+      if (queryValue?.length > 0) {
+        url = `${API_BASE_URL}/orders?startDate=${selectedDateRange.since}&endDate=${selectedDateRange.until}&queryValue=${queryValue}`
+      }
+      const response = await axios.get(url)
+      setOrders(response.data)
+    }
+    fetchData()
+  }, [selectedDateRange])
+
   const [queryValue, setQueryValue] = useState('')
-  // const [customerName, setCustomerName] = useState('')
-  // const [staffName, setStaffName] = useState('')
-  // const [dateRange, setDateRange] = useState<any>({ start: null, end: null })
 
   const handleQueryChange = useCallback(
     (value: string) => setQueryValue(value),
     []
   )
-  // const handleCustomerChange = useCallback(
-  //   (value: string) => setCustomerName(value),
-  //   []
-  // )
-  // const handleStaffChange = useCallback(
-  //   (value: string) => setStaffName(value),
-  //   []
-  // )
-  // const handleDateRangeChange = useCallback(
-  //   (value: string) => setDateRange(value),
-  //   []
-  // )
-
-  // const handleClearAll = useCallback(() => {
-  //   setQueryValue('')
-  //   setCustomerName('')
-  //   setStaffName('')
-  //   setDateRange({ start: null, end: null })
-  // }, [])
 
   const logFilters = useCallback(
     debounce(() => {
@@ -67,7 +73,9 @@ const OrderList = ({
 
         setOrders(response.data)
       }
-      fetchData()
+      if (queryValue?.length) {
+        fetchData()
+      }
     }, 1500),
 
     [queryValue]
@@ -76,45 +84,6 @@ const OrderList = ({
   useEffect(() => {
     logFilters()
   }, [logFilters])
-
-  // const filters = [
-  //   {
-  //     key: 'customerName',
-  //     label: 'Customer name',
-  //     filter: (
-  //       <TextField
-  //         value={customerName}
-  //         onChange={handleCustomerChange}
-  //         placeholder='Customer name'
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     key: 'staffName',
-  //     label: 'Attributed staff name',
-  //     filter: (
-  //       <TextField
-  //         value={staffName}
-  //         onChange={handleStaffChange}
-  //         placeholder='Staff name'
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     key: 'dateRange',
-  //     label: 'Date range',
-  //     filter: (
-  //       <DatePicker
-  //         month={dateRange.start?.getMonth() || 0}
-  //         year={dateRange.start?.getFullYear() || new Date().getFullYear()}
-  //         onChange={handleDateRangeChange}
-  //         onMonthChange={() => {}}
-  //         selected={dateRange}
-  //         allowRange
-  //       />
-  //     ),
-  //   },
-  // ]
 
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(orders)
@@ -159,22 +128,36 @@ const OrderList = ({
       <div
         style={{
           marginBottom: '10px',
+          display: 'flex',
+          gap: '10px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        <TextField
-          autoComplete='off'
-          value={queryValue}
-          onChange={handleQueryChange}
-          placeholder='Search by customer name or attributed staff name'
-        />
+        <div style={{ width: '70%' }}>
+          <TextField
+            autoComplete='off'
+            value={queryValue}
+            onChange={handleQueryChange}
+            placeholder='Search by customer name or attributed staff name'
+          />
+        </div>
+
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'end',
+          }}
+        >
+          <DateRangePicker
+            selectedDateRange={selectedDateRange}
+            setSelectedDateRange={setSelectedDateRange}
+          />
+        </div>
       </div>
-      {/* <Filters
-        queryValue={queryValue}
-        placeholder='Search orders'
-        filters={filters}
-        onQueryChange={handleQueryChange}
-        onClearAll={handleClearAll}
-      /> */}
+
       <Toaster />
       <IndexTable
         selectable={false}

@@ -3,7 +3,6 @@ import mongoose from 'mongoose'
 import orderRoutes from './routes/orderRoutes'
 import cors from 'cors'
 import * as dotenv from 'dotenv'
-import './utils/schedule'
 
 dotenv.config()
 

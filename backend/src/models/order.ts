@@ -1,6 +1,6 @@
 import { Schema, model, Document } from 'mongoose';
 
-interface IOrder extends Document {
+export interface IOrder extends Document {
   orderId: string;
   orderDate: Date;
   customerName: string;

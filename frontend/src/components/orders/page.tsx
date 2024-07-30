@@ -13,9 +13,9 @@ const Orders = () => {
     setOrders(data)
   }
 
-  useEffect(() => {
-    fetchOrders()
-  }, [])
+  // useEffect(() => {
+  //   fetchOrders()
+  // }, [])
 
   return (
     <>

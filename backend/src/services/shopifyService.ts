@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { Order } from '../models/order'
-import { calculateCommission } from '../utils/commissionCalculator'
+import { calculateCommission } from './rulesEngine'
 
 const mockDataPath = path.join(__dirname, '../data/mockData.json')
 
@@ -10,11 +9,7 @@ export const fetchOrdersFromShopify = async () => {
   const mockOrders = JSON.parse(data)
 
   for (const order of mockOrders) {
-    const commission = calculateCommission(
-      new Date(order.orderDate),
-      order.total,
-      order.productsCount
-    )
+    const commission = calculateCommission(order)
     order.commission = commission
   }
 
