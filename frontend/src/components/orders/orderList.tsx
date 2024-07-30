@@ -23,35 +23,36 @@ const OrderList = ({
   setOrders,
 }: {
   orders: OrderItem[]
-  setOrders: any
+  setOrders: (orders: OrderItem[]) => void
 }) => {
   const [queryValue, setQueryValue] = useState('')
-  const [customerName, setCustomerName] = useState('')
-  const [staffName, setStaffName] = useState('')
-  const [dateRange, setDateRange] = useState<any>({ start: null, end: null })
-
-  console.log(customerName, staffName, dateRange)
+  // const [customerName, setCustomerName] = useState('')
+  // const [staffName, setStaffName] = useState('')
+  // const [dateRange, setDateRange] = useState<any>({ start: null, end: null })
 
   const handleQueryChange = useCallback(
-    (value: any) => setQueryValue(value),
+    (value: string) => setQueryValue(value),
     []
   )
-  const handleCustomerChange = useCallback(
-    (value: any) => setCustomerName(value),
-    []
-  )
-  const handleStaffChange = useCallback((value: any) => setStaffName(value), [])
-  const handleDateRangeChange = useCallback(
-    (value: any) => setDateRange(value),
-    []
-  )
+  // const handleCustomerChange = useCallback(
+  //   (value: string) => setCustomerName(value),
+  //   []
+  // )
+  // const handleStaffChange = useCallback(
+  //   (value: string) => setStaffName(value),
+  //   []
+  // )
+  // const handleDateRangeChange = useCallback(
+  //   (value: string) => setDateRange(value),
+  //   []
+  // )
 
-  const handleClearAll = useCallback(() => {
-    setQueryValue('')
-    setCustomerName('')
-    setStaffName('')
-    setDateRange({ start: null, end: null })
-  }, [])
+  // const handleClearAll = useCallback(() => {
+  //   setQueryValue('')
+  //   setCustomerName('')
+  //   setStaffName('')
+  //   setDateRange({ start: null, end: null })
+  // }, [])
 
   const logFilters = useCallback(
     debounce(() => {
@@ -76,44 +77,44 @@ const OrderList = ({
     logFilters()
   }, [logFilters])
 
-  const filters = [
-    {
-      key: 'customerName',
-      label: 'Customer name',
-      filter: (
-        <TextField
-          value={customerName}
-          onChange={handleCustomerChange}
-          placeholder='Customer name'
-        />
-      ),
-    },
-    {
-      key: 'staffName',
-      label: 'Attributed staff name',
-      filter: (
-        <TextField
-          value={staffName}
-          onChange={handleStaffChange}
-          placeholder='Staff name'
-        />
-      ),
-    },
-    // {
-    //   key: 'dateRange',
-    //   label: 'Date range',
-    //   filter: (
-    //     <DatePicker
-    //       month={dateRange.start?.getMonth() || 0}
-    //       year={dateRange.start?.getFullYear() || new Date().getFullYear()}
-    //       onChange={handleDateRangeChange}
-    //       onMonthChange={() => {}}
-    //       selected={dateRange}
-    //       allowRange
-    //     />
-    //   ),
-    // },
-  ]
+  // const filters = [
+  //   {
+  //     key: 'customerName',
+  //     label: 'Customer name',
+  //     filter: (
+  //       <TextField
+  //         value={customerName}
+  //         onChange={handleCustomerChange}
+  //         placeholder='Customer name'
+  //       />
+  //     ),
+  //   },
+  //   {
+  //     key: 'staffName',
+  //     label: 'Attributed staff name',
+  //     filter: (
+  //       <TextField
+  //         value={staffName}
+  //         onChange={handleStaffChange}
+  //         placeholder='Staff name'
+  //       />
+  //     ),
+  //   },
+  //   {
+  //     key: 'dateRange',
+  //     label: 'Date range',
+  //     filter: (
+  //       <DatePicker
+  //         month={dateRange.start?.getMonth() || 0}
+  //         year={dateRange.start?.getFullYear() || new Date().getFullYear()}
+  //         onChange={handleDateRangeChange}
+  //         onMonthChange={() => {}}
+  //         selected={dateRange}
+  //         allowRange
+  //       />
+  //     ),
+  //   },
+  // ]
 
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(orders)
